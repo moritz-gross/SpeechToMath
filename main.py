@@ -17,17 +17,19 @@ def transcribe(audio_path: str) -> str:
 def text_to_sympy(txt: str):
     examples = [
         {"text": "one plus two", "expression": "1 + 2"},
-        {"text": "the square root of ten minus five", "expression": "sp.sqrt(10) - 5"}
+        {"text": "the square root of ten minus five", "expression": "sqrt(10) - 5"}
     ]
     examples_text = "\n".join([f"Text: {ex['text']}\nExpression: {ex['expression']}" for ex in examples])
 
-    prompt = f"""Convert the following natural language description of a mathematical expression into a sympy expression.
-Here are some examples:
+    prompt = f"""Convert the following natural‑language description of a mathematical expression
+    into a valid SymPy expression **without using any module prefix** (e.g. use `cos(x)` not `sp.cos(x)`).
 
-{examples_text}
+    Here are some examples:
 
-Text: {txt}
-Expression:"""
+    {examples_text}
+
+    Text: {txt}
+    Expression:"""
 
     response = openai.chat.completions.create(
         model="gpt-4.1",
