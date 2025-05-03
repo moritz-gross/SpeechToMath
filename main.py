@@ -1,7 +1,7 @@
 from sympy.parsing.sympy_parser import parse_expr
 import openai
 import os
-
+import argparse
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -32,7 +32,7 @@ def text_to_sympy(txt: str):
     Expression:"""
 
     response = openai.chat.completions.create(
-        model="gpt-4.1",
+        model="gpt-4.1-2025-04-14",
         messages=[
             {"role": "system", "content": "You are a helpful assistant that converts natural language math descriptions into sympy expressions."},
             {"role": "user", "content": prompt}
@@ -46,19 +46,14 @@ def text_to_sympy(txt: str):
 
 
 if __name__ == "__main__":
-    import argparse, sys
-
     ap = argparse.ArgumentParser()
     ap.add_argument("audio", help="Path to an audio file (wav/mp3/ogg…)")
     args = ap.parse_args()
 
     described_text: str = transcribe(args.audio)
     print(f"[raw transcription] {described_text}")
-    
-    try:
-        sympy_expr = text_to_sympy(described_text)
-        print(f"[symbolic expression] {sympy_expr}")
-        print(f"[simplified result] {sympy_expr.simplify()}")
-    except Exception as e:
-        print(f"Error converting to expression: {e}", file=sys.stderr)
-        sys.exit(1)
+
+    sympy_expr = text_to_sympy(described_text)
+    print(f"[symbolic expression] {sympy_expr}")
+    print(f"[simplified result] {sympy_expr.simplify()}")
+
