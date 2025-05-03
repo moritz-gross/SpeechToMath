@@ -28,7 +28,7 @@ Text: {txt}
 Expression:"""
 
     response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4.1",
         messages=[
             {"role": "system", "content": "You are a helpful assistant that converts natural language math descriptions into sympy expressions."},
             {"role": "user", "content": prompt}
