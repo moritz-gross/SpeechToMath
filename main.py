@@ -57,14 +57,18 @@ def text_to_sympy(txt: str):
     return parse_expr(expression_text, evaluate=False)
 
 
+def audio_to_math(path: str):
+    described_text: str = transcribe(path)
+    print(f"[raw transcription] {' '.join([x["word"] for x in described_text])}")
+    sympy_expr = text_to_sympy(described_text)
+    print(f"[symbolic expression] {sympy_expr}")
+    print(f"[evaluation] {round(sympy_expr.evalf(), 3)}")
+
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("audio", help="Path to an audio file (wav/mp3/ogg…)")
     args = ap.parse_args()
 
-    described_text: str = transcribe(args.audio)
-    print(f"[raw transcription] {' '.join([x["word"] for x in described_text])}")
-
-    sympy_expr = text_to_sympy(described_text)
-    print(f"[symbolic expression] {sympy_expr}")
-    print(f"[evaluation] {round(sympy_expr.evalf(), 3)}")
+    audio_to_math(path = args.audio)
