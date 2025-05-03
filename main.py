@@ -1,4 +1,3 @@
-import whisper
 from sympy.parsing.sympy_parser import parse_expr
 import openai
 import os
@@ -6,10 +5,13 @@ import os
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-def transcribe(audio_path: str, model_size: str = "base") -> str:
-    model = whisper.load_model(model_size)
-    result = model.transcribe(audio_path, language=None)   # auto‑detect EN / DE
-    return result["text"].strip().lower()
+def transcribe(audio_path: str) -> str:
+    with open(audio_path, "rb") as audio_file:
+        transcript = openai.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file
+        )
+    return transcript.text.strip().lower()
 
 
 def text_to_sympy(txt: str):
@@ -46,10 +48,9 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser()
     ap.add_argument("audio", help="Path to an audio file (wav/mp3/ogg…)")
-    ap.add_argument("-m", "--model", default="base", help="Whisper model size")
     args = ap.parse_args()
 
-    described_text: str = transcribe(args.audio, args.model)
+    described_text: str = transcribe(args.audio)
     print(f"[raw transcription] {described_text}")
     
     try:
@@ -59,4 +60,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error converting to expression: {e}", file=sys.stderr)
         sys.exit(1)
-
