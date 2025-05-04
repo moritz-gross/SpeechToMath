@@ -8,4 +8,5 @@ dependencies = [
     "sympy",
     "lark",
     "openai",
+    "matplotlib",
 ]
