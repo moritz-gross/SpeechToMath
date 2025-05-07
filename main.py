@@ -1,4 +1,3 @@
-from sympy.parsing.sympy_parser import parse_expr
 import openai
 import os
 import argparse
@@ -24,46 +23,68 @@ def transcribe(audio_path: str) -> List[Dict]:
         for w in transcript.words]
 
 
-def text_to_sympy(txt: str):
+def text_to_latex(natural_text: str) -> str:
     examples = [
-        {"text": "one plus two", "expression": "1 + 2"},
-        {"text": "the square root of ten minus five", "expression": "sqrt(10) - 5"}
+        {
+            "text": "the integral from zero to pi of sine x d x",
+            "latex": r"\int_{0}^{\pi} \sin x \, dx",
+        },
+        {
+            "text": "the sum from n equals one to infinity of the fraction one over n squared",
+            "latex": r"\sum_{n = 1}^{\infty} \frac{1}{n^{2}}",
+        },
+        {
+            "text": "alpha squared plus beta sub zero all over gamma",
+            "latex": r"\frac{\alpha^{2} + \beta_{0}}{\gamma}",
+        },
     ]
-    examples_text = "\n".join([f"Text: {ex['text']}\nExpression: {ex['expression']}" for ex in examples])
+    examples_text = "\n\n".join(
+        f"Text: {ex['text']}\nLaTeX: {ex['latex']}" for ex in examples
+    )
 
     prompt = f"""Convert the following natural‑language description of a mathematical expression
-    into a valid SymPy expression **without using any module prefix** (e.g. use `cos(x)` not `sp.cos(x)`).
+    into  **pure LaTeX** (math mode) without surrounding dollar signs or backticks..
     Use the word level timestamps to infer which parts to group together in the expression.
 
     Here are some examples:
 
     {examples_text}
 
-    Text: {txt}
+    Text: {natural_text}
     Expression:"""
 
     response = openai.chat.completions.create(
         model="gpt-4.1-2025-04-14",
         messages=[
-            {"role": "system",
-             "content": "You are a helpful assistant that converts natural language math descriptions into sympy expressions."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": (
+                    "You are a helpful assistant that converts spoken or written mathematics "
+                    "into high‑quality LaTeX code."
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt
+            },
         ],
         temperature=0,
-        max_tokens=100
+        max_tokens=200,
     )
 
-    expression_text = response.choices[0].message.content.strip()
-    return parse_expr(expression_text, evaluate=False)
+    return response.choices[0].message.content.strip()
 
 
-def audio_to_math(path: str):
-    described_text: str = transcribe(path)
-    print(f"[raw transcription] {' '.join([x["word"] for x in described_text])}")
-    sympy_expr = text_to_sympy(described_text)
-    print(f"[symbolic expression] {sympy_expr}")
-    print(f"[evaluation] {round(sympy_expr.evalf(), 3)}")
 
+def audio_to_latex(path: str) -> None:
+    """End‑to‑end pipeline: audio → text → LaTeX (→ optional evaluation)."""
+
+    words = transcribe(path)
+    natural_text = " ".join(w["word"] for w in words)
+    print(f"[raw transcription] {natural_text}")
+
+    latex_expr = text_to_latex(natural_text)
+    print(f"[LaTeX expression] {latex_expr}")
 
 
 if __name__ == "__main__":
@@ -71,4 +92,4 @@ if __name__ == "__main__":
     ap.add_argument("audio", help="Path to an audio file (wav/mp3/ogg…)")
     args = ap.parse_args()
 
-    audio_to_math(path = args.audio)
+    audio_to_latex(path=args.audio)
