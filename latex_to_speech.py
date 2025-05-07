@@ -3,13 +3,13 @@ import os
 import sys
 import openai
 
-# -------------------------------------------------------------------------##
+# --------------
 # Configuration
-# -------------------------------------------------------------------------##
+# --------------
 CHAT_MODEL = "gpt-4.1"   # Or "gpt-4o", "gpt-4-turbo", …
 TTS_MODEL  = "tts-1"            # Or "tts-1-hd"
 VOICE      = "alloy"            # Try "nova", "echo", "fable", "onyx", …
-FORMAT     = "mp3"              # "wav" and "ogg" are also supported
+
 
 SYSTEM_PROMPT = (
     "You are a mathematical narrator speaking to a general audience. "
