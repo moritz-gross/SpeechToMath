@@ -9,4 +9,6 @@ dependencies = [
     "lark",
     "openai",
     "matplotlib",
+    "streamlit",
+    "audio-recorder-streamlit",
 ]

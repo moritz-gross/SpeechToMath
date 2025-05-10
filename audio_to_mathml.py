@@ -1,9 +1,11 @@
 from sympy.parsing.sympy_parser import parse_expr
 import openai
 import os
-import argparse
 from typing import List, Dict
 import sympy as sp
+import streamlit as st
+import tempfile
+from audio_recorder_streamlit import audio_recorder
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -62,7 +64,8 @@ def text_to_sympy(txt: str):
     except:
         raise InvalidSympyException("input could not be parsed as a sympy expression")
 
-def audio_to_mathml(path: str):
+
+def get_results_for_streamlit(path: str) -> Dict[str, str]:
     transcription = transcribe(path)
     plain_text = " ".join([w["word"] for w in transcription])
     print(f"[raw transcription] {plain_text}")
@@ -70,14 +73,74 @@ def audio_to_mathml(path: str):
     sympy_expr = text_to_sympy(plain_text)
     print(f"[sympy expression] {sympy_expr}")
 
-    return sp.printing.mathml(sympy_expr) # use printer='presentation' if you want presentation mathml
+    mathml_result = sp.printing.mathml(sympy_expr) # use printer='presentation' if you want presentation mathml
+    return {
+        "transcription": plain_text,
+        "sympy_expr_str": str(sympy_expr),
+        "mathml": mathml_result
+    }
 
+
+def run_streamlit_app():
+    st.set_page_config(layout="wide")
+    st.title("🎙️ Voice to MathML Converter")
+    st.markdown(
+        "Record your mathematical expression using your microphone. "
+        "The system will transcribe it, convert it to a SymPy expression, and then render it as MathML."
+    )
+
+    col_mic, col_results = st.columns([1, 2])
+
+    with col_mic:
+        st.subheader("Record Audio Input")
+        audio_bytes = audio_recorder( # The audio_recorder widget for voice input
+            text="Click the icon to record:",
+            recording_color="#e84343",  # red color means recording
+            neutral_color="#008E00",  # green color means not recording
+            icon_size="3x",  # Larger icon
+            pause_threshold=2.0,  # Shorter silence to stop
+        )
+
+    with col_results:
+        st.subheader("Output")
+        if audio_bytes:
+            st.audio(audio_bytes, format="audio/wav")  # Display the recorded audio
+
+            # Temporary file to store audio bytes for processing
+            tmp_audio_path = None
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_audio_file:
+                    tmp_audio_file.write(audio_bytes)
+                    tmp_audio_path = tmp_audio_file.name
+
+                with st.spinner("Processing your voice input... Please wait."):
+                    results = get_results_for_streamlit(tmp_audio_path)
+
+                st.success("Processing complete!")
+                st.markdown("---")  # Visual separator
+
+                # Displaying the results
+                st.markdown(f"**Transcribed Text:**")
+                st.text_area("Transcription", results["transcription"], height=75, key="transcription_display")
+
+                st.markdown(f"**SymPy Expression (Python Code):**")
+                st.code(results["sympy_expr_str"], language="python")
+
+                st.markdown(f"**MathML:**")
+                st.code(results['mathml'], language="xml")
+
+            except InvalidSympyException as e:
+                st.error(f"SymPy Conversion Error: {e}. Please ensure your spoken math is clear or try rephrasing.")
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}")
+                st.error("Details: Check your microphone, internet connection, and OpenAI API key / quota.")
+            finally:
+                if tmp_audio_path and os.path.exists(tmp_audio_path):
+                    os.remove(tmp_audio_path)  # Clean up the temp file
+        else:
+            st.info("After recording, the results will be displayed here.")
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("audio", help="Path to an audio file (wav/mp3/ogg…)")
-    args = ap.parse_args()
-
-    result = audio_to_mathml(path=args.audio)
-    print(result)
+    # This replaces the original argparse logic
+    run_streamlit_app()
