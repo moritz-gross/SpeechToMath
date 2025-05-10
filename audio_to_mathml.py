@@ -7,6 +7,9 @@ import sympy as sp
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
+class InvalidSympyException(Exception):
+    pass
+
 
 def transcribe(audio_path: str) -> List[Dict]:
     with open(audio_path, "rb") as audio_file:
@@ -54,8 +57,10 @@ def text_to_sympy(txt: str):
     )
 
     expression_text = response.choices[0].message.content.strip()
-    return parse_expr(expression_text, evaluate=False)
-
+    try:
+        return parse_expr(expression_text, evaluate=False)
+    except:
+        raise InvalidSympyException("input could not be parsed as a sympy expression")
 
 def audio_to_mathml(path: str):
     transcription = transcribe(path)
