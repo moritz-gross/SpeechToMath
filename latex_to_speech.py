@@ -10,19 +10,22 @@ CHAT_MODEL = "gpt-4.1"   # Or "gpt-4o", "gpt-4-turbo", …
 TTS_MODEL  = "tts-1"            # Or "tts-1-hd"
 VOICE      = "alloy"            # Try "nova", "echo", "fable", "onyx", …
 
+# use 'r' for raw String, so that escape characters are not processed
+SYSTEM_PROMPT = r"""
 
-SYSTEM_PROMPT = (
-    "You are a mathematical narrator speaking to a general audience. "
-    "Rewrite the given LaTeX equation so that it can be read aloud clearly. "
-    "Aim for concise, unambiguous phrasing; expand symbols (e.g. "
-    "'∫₀^π sin x dx' → 'the integral from zero to pi of sine x dx')."
-)
+You are a mathematical assistant for blind mathematicians that want to understand a LaTeX. 
+Rewrite the given LaTeX so that it can be read aloud clearly. 
+Aim for concise, unambiguous phrasing. expand symbols.
+
+Example: '\int_{0}^{\pi} \sin x \, dx': 'the integral from zero to pi of sine x dx'
+Example: 'a + (b*c))': 'alpha, plus b times c'
+Example: '\sum_{n=1}^{\infty} \frac{1}{n^2}': 'alpha, plus b times c'
+Example: '\begin{bmatrix}1 & 2 \\ 7 & 5\end{bmatrix}': 'matrix with rows one comma two, and seven comma five'
+"""
+
 
 
 def latex_to_description(latex: str) -> str:
-    """
-    Turn a LaTeX math string into a human‑readable sentence.
-    """
     resp = openai.chat.completions.create(
         model=CHAT_MODEL,
         messages=[

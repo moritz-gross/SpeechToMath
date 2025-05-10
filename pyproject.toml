@@ -5,7 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
     "openai-whisper",      # Whisper + Torch
-    "sympy",
+    "sympy>=1.14",
     "lark",
     "openai",
     "matplotlib",
