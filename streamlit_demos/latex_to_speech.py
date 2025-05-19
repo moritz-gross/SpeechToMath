@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import openai
+import streamlit as st
 
 # --------------
 # Configuration
@@ -71,15 +72,52 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-def main():
-    args = parse_args()
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+def run_streamlit_app():
+    """Interactive Streamlit UI that converts a LaTeX string to spoken audio."""
+    st.set_page_config(layout="wide")
 
-    try:
-        latex_to_speech(args.latex)
-    except openai.OpenAIError as exc:
-        sys.exit(f"❌ OpenAI API error: {exc}")
+    st.title("📝 LaTeX → Speech Converter")
+
+
+    col_input, col_result = st.columns([1, 2]) # Layout
+
+    with col_input: # Input Column
+        st.subheader("LaTeX Input")
+        latex_input = st.text_area("Paste LaTeX here:", height=200)
+
+        voice_options = ["alloy", "nova", "echo", "fable", "onyx"]
+        voice_default_idx = voice_options.index(VOICE) if VOICE in voice_options else 0
+        voice_choice = st.selectbox("Voice", voice_options, index=voice_default_idx)
+
+        generate_btn = st.button("🔊 Generate Speech", type="primary")
+
+    with col_result: # Result Column
+        if generate_btn:
+            if not latex_input.strip():
+                st.error("Please provide a non‑empty LaTeX expression.")
+                return
+
+            try:
+                with st.spinner("Generating description and speech …"):
+                    description_text = latex_to_description(latex_input)
+                    audio_bytes = description_to_speech(description_text, voice_choice)
+
+                st.success("Generation complete!")
+
+                st.markdown("**Spoken Description (text):**")
+                st.text_area("Description", description_text, height=150)
+
+                st.markdown("**Audio Playback:**")
+                st.audio(audio_bytes, format="audio/mp3")
+                st.download_button("💾 Download MP3", data=audio_bytes, file_name="latex_description.mp3", mime="audio/mpeg")
+
+            except openai.OpenAIError as e:
+                st.error(f"OpenAI API error: {e}")
+            except Exception as e:
+                st.error(f"Unexpected error: {e}")
+        else:
+            st.info("After you click *Generate Speech*, the description and audio will appear here.")
 
 
 if __name__ == "__main__":
-    main()
+    run_streamlit_app()
