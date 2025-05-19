@@ -30,7 +30,7 @@ def transcribe(audio_path: str) -> List[Dict]:
         for w in transcript.words]
 
 
-def text_to_sympy(txt: str):
+def llm_call(txt: str):
     examples = [
         {"text": "one plus two", "expression": "1 + 2"},
         {"text": "the square root of ten minus five", "expression": "sqrt(10) - 5"}
@@ -54,8 +54,6 @@ def text_to_sympy(txt: str):
             "content": "You are a helpful assistant that converts natural language math descriptions into sympy expressions."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0,
-        max_tokens=100
     )
 
     expression_text = response.choices[0].message.content.strip()
@@ -70,7 +68,7 @@ def get_results_for_streamlit(path: str) -> Dict[str, str]:
     plain_text = " ".join([w["word"] for w in transcription])
     print(f"[raw transcription] {plain_text}")
 
-    sympy_expr = text_to_sympy(plain_text)
+    sympy_expr = llm_call(plain_text)
     print(f"[sympy expression] {sympy_expr}")
 
     mathml_result = sp.printing.mathml(sympy_expr) # use printer='presentation' if you want presentation mathml
@@ -85,7 +83,7 @@ def run_streamlit_app():
     st.set_page_config(layout="wide")
     st.title("🎙️ Voice to MathML Converter")
     st.markdown(
-        "Record your mathematical expression using your microphone. "
+        "Record your mathematical expression using your microphone."
         "The system will transcribe it, convert it to a SymPy expression, and then render it as MathML."
     )
 
@@ -93,12 +91,11 @@ def run_streamlit_app():
 
     with col_mic:
         st.subheader("Record Audio Input")
-        audio_bytes = audio_recorder( # The audio_recorder widget for voice input
+        audio_bytes = audio_recorder(
             text="Click the icon to record:",
-            recording_color="#e84343",  # red color means recording
-            neutral_color="#008E00",  # green color means not recording
-            icon_size="3x",  # Larger icon
-            pause_threshold=2.0,  # Shorter silence to stop
+            recording_color="#fafafa",
+            neutral_color="#aaaaaa",
+            icon_size="3x",
         )
 
     with col_results:
@@ -116,10 +113,7 @@ def run_streamlit_app():
                 with st.spinner("Processing your voice input... Please wait."):
                     results = get_results_for_streamlit(tmp_audio_path)
 
-                st.success("Processing complete!")
-                st.markdown("---")  # Visual separator
 
-                # Displaying the results
                 st.markdown(f"**Transcribed Text:**")
                 st.text_area("Transcription", results["transcription"], height=75, key="transcription_display")
 
@@ -137,10 +131,7 @@ def run_streamlit_app():
             finally:
                 if tmp_audio_path and os.path.exists(tmp_audio_path):
                     os.remove(tmp_audio_path)  # Clean up the temp file
-        else:
-            st.info("After recording, the results will be displayed here.")
 
 
 if __name__ == "__main__":
-    # This replaces the original argparse logic
     run_streamlit_app()
