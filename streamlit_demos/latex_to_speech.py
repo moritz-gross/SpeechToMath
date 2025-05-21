@@ -1,15 +1,12 @@
 import argparse
-import os
-import sys
+
 import openai
 import streamlit as st
 
-# --------------
-# Configuration
-# --------------
-CHAT_MODEL = "gpt-4.1"   # Or "gpt-4o", "gpt-4-turbo", …
-TTS_MODEL  = "tts-1"            # Or "tts-1-hd"
-VOICE      = "alloy"            # Try "nova", "echo", "fable", "onyx", …
+
+CHAT_MODEL = "gpt-4.1"
+TTS_MODEL = "gpt-4o-mini-tts"
+VOICE = "alloy"
 
 # use 'r' for raw String, so that escape characters are not processed
 SYSTEM_PROMPT = r"""
@@ -25,13 +22,12 @@ Example: '\begin{bmatrix}1 & 2 \\ 7 & 5\end{bmatrix}': 'matrix with rows one com
 """
 
 
-
 def latex_to_description(latex: str) -> str:
     resp = openai.chat.completions.create(
         model=CHAT_MODEL,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": latex},
+            {"role": "user", "content": latex},
         ],
         temperature=0.1,
     )
@@ -52,9 +48,9 @@ def description_to_speech(text: str, voice: str) -> bytes:
 
 
 def latex_to_speech(
-    latex: str,
-    output_path: str = "output.mp3",
-    voice: str = VOICE,
+        latex: str,
+        output_path: str = "output.mp3",
+        voice: str = VOICE,
 ):
     description = latex_to_description(latex)
     audio_bytes = description_to_speech(description, voice)
@@ -78,10 +74,9 @@ def run_streamlit_app():
 
     st.title("📝 LaTeX → Speech Converter")
 
+    col_input, col_result = st.columns([1, 2])  # Layout
 
-    col_input, col_result = st.columns([1, 2]) # Layout
-
-    with col_input: # Input Column
+    with col_input:  # Input Column
         st.subheader("LaTeX Input")
         latex_input = st.text_area("Paste LaTeX here:", height=200)
 
@@ -91,7 +86,7 @@ def run_streamlit_app():
 
         generate_btn = st.button("🔊 Generate Speech", type="primary")
 
-    with col_result: # Result Column
+    with col_result:  # Result Column
         if generate_btn:
             if not latex_input.strip():
                 st.error("Please provide a non‑empty LaTeX expression.")
@@ -109,7 +104,8 @@ def run_streamlit_app():
 
                 st.markdown("**Audio Playback:**")
                 st.audio(audio_bytes, format="audio/mp3")
-                st.download_button("💾 Download MP3", data=audio_bytes, file_name="latex_description.mp3", mime="audio/mpeg")
+                st.download_button("💾 Download MP3", data=audio_bytes, file_name="latex_description.mp3",
+                                   mime="audio/mpeg")
 
             except openai.OpenAIError as e:
                 st.error(f"OpenAI API error: {e}")

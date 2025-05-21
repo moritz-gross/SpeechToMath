@@ -1,11 +1,10 @@
-from sympy.parsing.sympy_parser import parse_expr
 import openai
 import os
 from typing import List, Dict
 import sympy as sp
 import streamlit as st
-import tempfile
 from audio_recorder_streamlit import audio_recorder
+import tempfile
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -48,7 +47,7 @@ def llm_call(txt: str):
     Expression:"""
 
     response = openai.chat.completions.create(
-        model="gpt-4.1-2025-04-14",
+        model="o3",
         messages=[
             {"role": "system",
             "content": "You are a helpful assistant that converts natural language math descriptions into sympy expressions."},
@@ -58,7 +57,7 @@ def llm_call(txt: str):
 
     expression_text = response.choices[0].message.content.strip()
     try:
-        return parse_expr(expression_text, evaluate=False)
+        return sp.parsing.sympy_parser.parse_expr(expression_text, evaluate=False)
     except:
         raise InvalidSympyException("input could not be parsed as a sympy expression")
 
