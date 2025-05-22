@@ -47,7 +47,7 @@ def llm_call(txt: str):
     Expression:"""
 
     response = openai.chat.completions.create(
-        model="o3",
+        model="gpt-4.1-2025-04-14",
         messages=[
             {"role": "system",
             "content": "You are a helpful assistant that converts natural language math descriptions into sympy expressions."},
