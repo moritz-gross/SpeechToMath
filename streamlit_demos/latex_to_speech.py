@@ -17,7 +17,7 @@ Aim for concise, unambiguous phrasing. expand symbols.
 
 Example: '\int_{0}^{\pi} \sin x \, dx': 'the integral from zero to pi of sine x dx'
 Example: 'a + (b*c))': 'alpha, plus b times c'
-Example: '\sum_{n=1}^{\infty} \frac{1}{n^2}': 'alpha, plus b times c'
+Example: '\sum_{n=1}^{\infty} \frac{1}{n^2}': 'the sum from n equals to infty of one divided by n squared'
 Example: '\begin{bmatrix}1 & 2 \\ 7 & 5\end{bmatrix}': 'matrix with rows one comma two, and seven comma five'
 """
 

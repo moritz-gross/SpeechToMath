@@ -31,14 +31,51 @@ def transcribe(audio_path: str) -> List[Dict]:
 
 def llm_call(txt: str):
     examples = [
-        {"text": "one plus two", "expression": "1 + 2"},
-        {"text": "the square root of ten minus five", "expression": "sqrt(10) - 5"}
+
+        # Basic arithmetic
+        {"text": "seven minus four", "expression": "7 - 4"},
+
+        # Variables & powers
+        {"text": "two x cubed minus y", "expression": "2*x**3 - y"},
+
+        # Roots & exponentials
+        {"text": "square root of a squared plus b squared", "expression": "Sqrt(a**2 + b**2)"},
+
+        # Fractions & rationals
+        {"text": "three fifths of z", "expression": "Rational(3,5)*z"},
+
+        # Trigonometry
+        {"text": "cosine of theta over two", "expression": "Cos(theta/2)"},
+
+        # Calculus – derivative
+        {"text": "the derivative of e to x with respect to x", "expression": "Derivative(exp(x), x)"},
+
+        # Calculus – definite integral with symbolic bounds
+        {"text": "the integral from X0 to X1 of t squared d t", "expression": "Integral(t**2, (t, X0, X1))"},
+
+        # Calculus – limit
+        {"text": "the limit of sin h over h as h approaches zero", "expression": "Limit(sin(h)/h, h, 0)"},
+
+        # Calculus – summation / series
+        {"text": "sum of i squared from i equals one to n", "expression": "Sum(i**2, (i, 1, n))"},
+
+        # Set theory – union
+        {"text": "A union B", "expression": "A | B"},
+
+        # Interval notation with symbols
+        {"text": "the closed interval from X0 to X1", "expression": "Interval(X0, X1)"},
+
+        # Piecewise functions
+        {"text": "f of x equals x squared if x is positive otherwise zero",
+         "expression": "Piecewise((x**2, x > 0), (0, True))"}
     ]
     examples_text = "\n".join([f"Text: {ex['text']}\nExpression: {ex['expression']}" for ex in examples])
 
     prompt = f"""Convert the following natural‑language description of a mathematical expression
     into a valid SymPy expression **without using any module prefix** (e.g. use `cos(x)` not `sp.cos(x)`).
-
+    Do not simplify the expression, e.g. if the input was "one plus two", return "1+2" instead of "3".
+    This includes derivatives, integrals, limits, etc.
+    
     Here are some examples:
 
     {examples_text}
@@ -82,7 +119,7 @@ def run_streamlit_app():
     st.set_page_config(layout="wide")
     st.title("🎙️ Voice to MathML Converter")
     st.markdown(
-        "Record your mathematical expression using your microphone."
+        "Record your mathematical expression using your microphone. "
         "The system will transcribe it, convert it to a SymPy expression, and then render it as MathML."
     )
 
